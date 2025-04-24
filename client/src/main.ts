@@ -1,8 +1,9 @@
 import "./style.css";
-import { HelloWorld } from "lib";
+import { add, HelloWorld } from "lib";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     ${HelloWorld()}
+    ${add(1, 2)}
   </div>
 `;
