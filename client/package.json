@@ -13,6 +13,6 @@
     "vite": "^6.3.1"
   },
   "dependencies": {
-    "lib": "link:/Users/luketurnbull/dev/test/test-lib/lib"
+    "lib": "../lib"
   }
 }
