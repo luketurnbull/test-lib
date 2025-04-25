@@ -1,4 +1,3 @@
-// core/math.ts - Math utilities for matrices and vectors
 export class Vector3 {
   x: number;
   y: number;
@@ -382,54 +381,60 @@ export class Material {
   compile(): void {
     const gl = this.gl;
 
-    // Create and compile vertex shader
-    const vertShader = gl.createShader(gl.VERTEX_SHADER);
-    if (!vertShader) throw new Error("Failed to create vertex shader");
-    gl.shaderSource(vertShader, this.vertexShader);
-    gl.compileShader(vertShader);
+    try {
+      // Create and compile vertex shader
+      const vertShader = gl.createShader(gl.VERTEX_SHADER);
+      if (!vertShader) throw new Error("Failed to create vertex shader");
+      gl.shaderSource(vertShader, this.vertexShader);
+      gl.compileShader(vertShader);
 
-    if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
-      const info = gl.getShaderInfoLog(vertShader);
-      gl.deleteShader(vertShader);
-      throw new Error(`Vertex shader compilation failed: ${info}`);
-    }
+      if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+        const info = gl.getShaderInfoLog(vertShader);
+        gl.deleteShader(vertShader);
+        throw new Error(`Vertex shader compilation failed: ${info}`);
+      }
 
-    // Create and compile fragment shader
-    const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-    if (!fragShader) throw new Error("Failed to create fragment shader");
-    gl.shaderSource(fragShader, this.fragmentShader);
-    gl.compileShader(fragShader);
+      // Create and compile fragment shader
+      const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+      if (!fragShader) throw new Error("Failed to create fragment shader");
+      gl.shaderSource(fragShader, this.fragmentShader);
+      gl.compileShader(fragShader);
 
-    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
-      const info = gl.getShaderInfoLog(fragShader);
+      if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+        const info = gl.getShaderInfoLog(fragShader);
+        gl.deleteShader(vertShader);
+        gl.deleteShader(fragShader);
+        throw new Error(`Fragment shader compilation failed: ${info}`);
+      }
+
+      // Create shader program
+      const program = gl.createProgram();
+      if (!program) throw new Error("Failed to create shader program");
+
+      gl.attachShader(program, vertShader);
+      gl.attachShader(program, fragShader);
+      gl.linkProgram(program);
+
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const info = gl.getProgramInfoLog(program);
+        gl.deleteShader(vertShader);
+        gl.deleteShader(fragShader);
+        gl.deleteProgram(program);
+        throw new Error(`Shader program linking failed: ${info}`);
+      }
+
+      // Clean up shaders after linking
       gl.deleteShader(vertShader);
       gl.deleteShader(fragShader);
-      throw new Error(`Fragment shader compilation failed: ${info}`);
-    }
 
-    // Create shader program
-    this.program = gl.createProgram();
-    if (!this.program) throw new Error("Failed to create shader program");
-
-    gl.attachShader(this.program, vertShader);
-    gl.attachShader(this.program, fragShader);
-    gl.linkProgram(this.program);
-
-    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-      const info = gl.getProgramInfoLog(this.program);
-      gl.deleteShader(vertShader);
-      gl.deleteShader(fragShader);
-      gl.deleteProgram(this.program);
+      // Set the program and cache uniforms
+      this.program = program;
+      this.cacheUniforms();
+    } catch (error) {
+      console.error("Shader compilation error:", error);
       this.program = null;
-      throw new Error(`Shader program linking failed: ${info}`);
+      throw error;
     }
-
-    // Clean up shaders after linking
-    gl.deleteShader(vertShader);
-    gl.deleteShader(fragShader);
-
-    // Cache uniform locations
-    this.cacheUniforms();
   }
 
   cacheUniforms(): void {
@@ -449,6 +454,12 @@ export class Material {
         const name = info.name;
         this.uniforms[name] = gl.getUniformLocation(this.program, name);
       }
+    }
+  }
+
+  use(): void {
+    if (this.program) {
+      this.gl.useProgram(this.program);
     }
   }
 
@@ -541,16 +552,21 @@ export class BasicMaterial extends Material {
 
     super(gl, vertexShader, fragmentShader);
 
+    // Check if program was created successfully
+    if (!this.program) {
+      console.error(
+        "Failed to create shader program in BasicMaterial constructor"
+      );
+      return;
+    }
+
     // Set default uniforms
     this.use();
+    if (!gl.getParameter(gl.CURRENT_PROGRAM)) {
+      console.error("Program not active after use() call");
+    }
     this.setVector3("color", color);
     this.setVector3("lightPosition", new Vector3(5, 5, 5));
-  }
-
-  use(): void {
-    if (this.program) {
-      this.gl.useProgram(this.program);
-    }
   }
 }
 
@@ -601,6 +617,15 @@ export class Mesh {
   ): void {
     // Update model matrix
     this.updateModelMatrix();
+
+    // Check if the program exists and is valid
+    if (!this.material.program) {
+      console.error("Shader program is null");
+      return;
+    }
+
+    // Activate the material's shader program
+    this.material.use();
 
     // Set matrices
     this.material.setMatrix4("modelMatrix", this.modelMatrix);
