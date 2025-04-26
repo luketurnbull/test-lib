@@ -3,6 +3,7 @@ import { Context } from "./gl";
 export class ShaderProgram {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
+  private attributeLocations: Map<string, number> = new Map();
 
   constructor(vertexSource: string, fragmentSource: string) {
     this.gl = Context.useGl();
@@ -15,10 +16,35 @@ export class ShaderProgram {
     );
 
     this.program = this.createProgram(vertexShader, fragmentShader);
+    this.findAttributeLocations();
 
     // Clean up shaders after linking
     this.gl.deleteShader(vertexShader);
     this.gl.deleteShader(fragmentShader);
+  }
+
+  private findAttributeLocations(): void {
+    const numAttributes = this.gl.getProgramParameter(
+      this.program,
+      this.gl.ACTIVE_ATTRIBUTES
+    );
+
+    for (let i = 0; i < numAttributes; i++) {
+      const info = this.gl.getActiveAttrib(this.program, i);
+      if (info) {
+        const location = this.gl.getAttribLocation(this.program, info.name);
+        this.attributeLocations.set(info.name, location);
+      }
+    }
+  }
+
+  public getAttributeLocation(name: string): number {
+    const location = this.attributeLocations.get(name);
+    if (location === undefined) {
+      throw new Error(`Attribute '${name}' not found in shader program`);
+    }
+
+    return location;
   }
 
   private createShader(source: string, type: GLenum): WebGLShader {

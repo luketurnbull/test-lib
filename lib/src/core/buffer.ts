@@ -3,7 +3,7 @@ import { Context } from "./gl";
 export class Buffer {
   private gl: WebGL2RenderingContext;
   private vao: WebGLVertexArrayObject | null = null;
-  private buffers: Map<number, WebGLBuffer> = new Map();
+  private buffers: Map<string, WebGLBuffer> = new Map();
 
   constructor() {
     this.gl = Context.useGl();
@@ -11,7 +11,7 @@ export class Buffer {
 
   public begin() {
     this.vao = this.gl.createVertexArray();
-    this.bind();
+    this.unbind();
   }
 
   public end() {
@@ -19,12 +19,13 @@ export class Buffer {
   }
 
   public addAttribute(
-    attributeIndex: number,
+    name: string,
+    location: number,
     data: Float32Array,
     size: number
   ): this {
     if (!this.vao) {
-      throw new Error("No active VAO. Call beginVAO() first");
+      throw new Error("No active VAO. Call begin() first");
     }
 
     const buffer = this.gl.createBuffer();
@@ -34,17 +35,10 @@ export class Buffer {
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-    this.gl.enableVertexAttribArray(attributeIndex);
-    this.gl.vertexAttribPointer(
-      attributeIndex,
-      size,
-      this.gl.FLOAT,
-      false,
-      0,
-      0
-    );
+    this.gl.enableVertexAttribArray(location);
+    this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, 0, 0);
 
-    this.buffers.set(attributeIndex, buffer);
+    this.buffers.set(name, buffer);
     return this;
   }
 

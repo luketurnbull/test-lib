@@ -1,4 +1,5 @@
 import { Buffer } from "./buffer";
+import { ShaderProgram } from "./shader-program";
 
 export class Geometry {
   private buffer: Buffer;
@@ -12,23 +13,20 @@ export class Geometry {
     this.vertexCount = positions.length / 3;
   }
 
-  public upload() {
+  public create() {
     this.buffer.begin();
+  }
 
-    // Add positions attributes to location 0
-    this.buffer.addAttribute(0, this.positions, 3);
+  public setupAttributes(program: ShaderProgram) {
+    this.buffer.bind();
 
-    // TODO: Add normals
-    //  if (this.normals) {
-    //    this.buffer.addAttribute(1, this.normals, 3);
-    //  }
-
-    // TODO: Add UVs
-    //  if (this.uvs) {
-    //    this.bufferManager.addAttribute(2, this.uvs, 2);
-    //  }
-
-    this.buffer.end();
+    // Add positions
+    try {
+      const positionLocation = program.getAttributeLocation("position");
+      this.buffer.addAttribute("position", positionLocation, this.positions, 3);
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   public draw() {

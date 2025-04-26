@@ -23,6 +23,7 @@ export class Mesh {
 
   render() {
     this.program.use();
+    this.geometry.setupAttributes(this.program);
     this.geometry.draw();
   }
 }
