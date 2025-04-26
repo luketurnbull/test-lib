@@ -1,6 +1,12 @@
 export class Material {
-  public vertexShader: string;
-  public fragmentShader: string;
+  public vertexShader: string = `#version 300 es
+   layout(location = 0) in vec3 position;
+  `;
+  public fragmentShader: string = `#version 300 es
+   precision highp float;
+
+   out vec4 fragColor;
+  `;
 
   constructor({
     vertexShader,
@@ -9,7 +15,11 @@ export class Material {
     vertexShader: string;
     fragmentShader: string;
   }) {
-    this.vertexShader = vertexShader;
-    this.fragmentShader = fragmentShader;
+    this.vertexShader = `${this.vertexShader}
+      ${vertexShader}
+    `;
+    this.fragmentShader = `${this.fragmentShader}
+      ${fragmentShader}
+    `;
   }
 }

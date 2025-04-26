@@ -1,21 +1,17 @@
 import { Geometry, Material, Mesh, Renderer } from "lib";
 import "./style.css";
 
-const vertexShader = `#version 300 es
-layout(location = 0) in vec3 position;
+const vertexShader = `
+  void main() {
+    gl_Position = vec4(position, 1.0);
+  }
+`;
 
-void main() {
-  gl_Position = vec4(position, 1.0);
-}`;
-
-const fragmentShader = `#version 300 es
-precision highp float;
-
-out vec4 fragColor;
-
-void main() {
-  fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}`;
+const fragmentShader = `
+  void main() {
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+`;
 
 class WebGLTest {
   private renderer: Renderer;
