@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       lib:
-        specifier: link:/Users/luketurnbull/dev/test/test-lib/lib
+        specifier: ../lib
         version: link:../lib
     devDependencies:
       typescript:
