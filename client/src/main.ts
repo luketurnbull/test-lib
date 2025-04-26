@@ -18,23 +18,10 @@ void main() {
 }`;
 
 class WebGLTest {
-  private canvas: HTMLCanvasElement;
   private renderer: Renderer;
 
   constructor() {
-    const canvas = document.getElementById("my-canvas");
-
-    if (!canvas) {
-      throw new Error("No canvas with that ID!");
-    }
-
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      throw new Error("Element is not a canvas!");
-    }
-
-    this.canvas = canvas;
-
-    this.renderer = new Renderer(this.canvas, {});
+    this.renderer = new Renderer("my-canvas");
     this.init();
   }
 

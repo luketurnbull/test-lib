@@ -2,11 +2,10 @@ import { Context } from "./gl";
 
 export class ShaderProgram {
   private gl: WebGL2RenderingContext;
-  public program: WebGLProgram;
+  private program: WebGLProgram;
 
   constructor(vertexSource: string, fragmentSource: string) {
-    const context = Context.getInstance();
-    this.gl = context.gl;
+    this.gl = Context.useGl();
 
     // Setup shaders
     const vertexShader = this.createShader(vertexSource, this.gl.VERTEX_SHADER);
@@ -65,5 +64,9 @@ export class ShaderProgram {
     }
 
     return program;
+  }
+
+  public use() {
+    this.gl.useProgram(this.program);
   }
 }
