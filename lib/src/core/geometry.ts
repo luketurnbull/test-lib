@@ -1,49 +1,43 @@
-import { Context } from "./gl";
+import { Buffer } from "./buffer";
 
 export class Geometry {
-  private gl: WebGL2RenderingContext;
-  private buffers: {
-    position?: WebGLBuffer;
-  } = {};
-
+  private buffer: Buffer;
   public positions: Float32Array;
   public vertexCount: number;
-  public vao: WebGLVertexArrayObject | null = null;
 
   constructor(positions: Float32Array) {
-    this.gl = Context.useGl();
+    this.buffer = new Buffer();
+
     this.positions = positions;
     this.vertexCount = positions.length / 3;
   }
 
   public upload() {
-    this.vao = this.gl.createVertexArray();
-    this.gl.bindVertexArray(this.vao);
+    this.buffer.begin();
 
-    // Add positions to the buffer
-    this.buffers.position = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
-    this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      this.positions,
-      this.gl.STATIC_DRAW
-    );
-    this.gl.enableVertexAttribArray(0);
-    this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 0, 0);
+    // Add positions attributes to location 0
+    this.buffer.addAttribute(0, this.positions, 3);
 
-    this.gl.bindVertexArray(null);
+    // TODO: Add normals
+    //  if (this.normals) {
+    //    this.buffer.addAttribute(1, this.normals, 3);
+    //  }
+
+    // TODO: Add UVs
+    //  if (this.uvs) {
+    //    this.bufferManager.addAttribute(2, this.uvs, 2);
+    //  }
+
+    this.buffer.end();
+  }
+
+  public draw() {
+    this.buffer.bind();
+    this.buffer.draw(this.vertexCount);
+    this.buffer.unbind();
   }
 
   dispose(): void {
-    if (this.vao) {
-      this.gl.deleteVertexArray(this.vao);
-    }
-
-    if (this.buffers.position) {
-      this.gl.deleteBuffer(this.buffers.position);
-    }
-
-    this.vao = null;
-    this.buffers = {};
+    this.buffer.dispose();
   }
 }

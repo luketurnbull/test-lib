@@ -58,10 +58,7 @@ export class Renderer {
   }
 
   public add(mesh: Mesh): void {
-    if (!mesh.geometry.vao) {
-      mesh.geometry.upload();
-    }
-
+    mesh.geometry.upload();
     this.meshes.push(mesh);
   }
 
