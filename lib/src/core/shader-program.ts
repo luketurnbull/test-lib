@@ -3,12 +3,12 @@ import { Context } from "./gl";
 export class ShaderProgram {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
-  private attributeLocations: Map<string, number> = new Map();
+  private attributes: Map<string, number> = new Map();
+  private uniforms: Map<string, WebGLUniformLocation> = new Map();
 
   constructor(vertexSource: string, fragmentSource: string) {
     this.gl = Context.useGl();
 
-    // Setup shaders
     const vertexShader = this.createShader(vertexSource, this.gl.VERTEX_SHADER);
     const fragmentShader = this.createShader(
       fragmentSource,
@@ -16,32 +16,62 @@ export class ShaderProgram {
     );
 
     this.program = this.createProgram(vertexShader, fragmentShader);
-    this.findAttributeLocations();
 
-    // Clean up shaders after linking
     this.gl.deleteShader(vertexShader);
     this.gl.deleteShader(fragmentShader);
+
+    this.cacheAttributes();
+    this.cacheUniforms();
   }
 
-  private findAttributeLocations(): void {
-    const numAttributes = this.gl.getProgramParameter(
+  private cacheAttributes(): void {
+    const attributes = this.gl.getProgramParameter(
       this.program,
       this.gl.ACTIVE_ATTRIBUTES
     );
 
-    for (let i = 0; i < numAttributes; i++) {
+    for (let i = 0; i < attributes; i++) {
       const info = this.gl.getActiveAttrib(this.program, i);
       if (info) {
+        console.log(info.name);
         const location = this.gl.getAttribLocation(this.program, info.name);
-        this.attributeLocations.set(info.name, location);
+        this.attributes.set(info.name, location);
+      }
+    }
+  }
+
+  private cacheUniforms(): void {
+    const numUniforms = this.gl.getProgramParameter(
+      this.program,
+      this.gl.ACTIVE_UNIFORMS
+    );
+
+    for (let i = 0; i < numUniforms; i++) {
+      const info = this.gl.getActiveUniform(this.program, i);
+      if (info) {
+        const name = info.name;
+        const location = this.gl.getUniformLocation(this.program, name);
+        console.log(name);
+        if (location) {
+          this.uniforms.set(name, location);
+        }
       }
     }
   }
 
   public getAttributeLocation(name: string): number {
-    const location = this.attributeLocations.get(name);
+    const location = this.attributes.get(name);
     if (location === undefined) {
       throw new Error(`Attribute '${name}' not found in shader program`);
+    }
+
+    return location;
+  }
+
+  public getUniformLocation(name: string): WebGLUniformLocation {
+    const location = this.uniforms.get(name);
+    if (location === undefined) {
+      throw new Error(`Uniform '${name}' not found in shader program`);
     }
 
     return location;
@@ -94,5 +124,14 @@ export class ShaderProgram {
 
   public use() {
     this.gl.useProgram(this.program);
+  }
+
+  dispose(): void {
+    if (this.program) {
+      this.gl.deleteProgram(this.program);
+    }
+
+    this.attributes.clear();
+    this.uniforms.clear();
   }
 }

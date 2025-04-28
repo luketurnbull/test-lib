@@ -1,4 +1,4 @@
-import { Geometry, Material, Mesh, Renderer } from "lib";
+import { Geometry, Material, Mesh, Renderer, BoxGeometry } from "lib";
 import "./style.css";
 
 const vertexShader = `
@@ -26,18 +26,24 @@ class WebGLTest {
      *   /\
      *  /__\
      */
-    const triangle = new Geometry(
-      new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0, 0.5, 0])
-    );
+    // const triangle = new Geometry(
+    //   new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0, 0.5, 0])
+    // );
 
     const material = new Material({
       vertexShader,
       fragmentShader,
     });
 
-    const mesh = new Mesh(triangle, material);
+    // const mesh = new Mesh(triangle, material);
 
-    this.renderer.add(mesh);
+    // this.renderer.add(mesh);
+
+    const box = new BoxGeometry(1, 1, 1);
+    const boxMesh = new Mesh(box, material);
+
+    this.renderer.add(boxMesh);
+
     this.renderer.render();
   }
 }

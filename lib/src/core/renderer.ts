@@ -58,7 +58,7 @@ export class Renderer {
   }
 
   public add(mesh: Mesh): void {
-    mesh.geometry.create();
+    mesh.create();
     this.meshes.push(mesh);
   }
 

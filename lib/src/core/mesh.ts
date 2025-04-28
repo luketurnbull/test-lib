@@ -21,9 +21,12 @@ export class Mesh {
     );
   }
 
+  create() {
+    this.geometry.create(this.program);
+  }
+
   render() {
     this.program.use();
-    this.geometry.setupAttributes(this.program);
     this.geometry.draw();
   }
 }

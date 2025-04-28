@@ -9,37 +9,33 @@ export class Buffer {
     this.gl = Context.useGl();
   }
 
-  public begin() {
+  public createVao() {
     this.vao = this.gl.createVertexArray();
-    this.unbind();
+    this.bind();
   }
 
-  public end() {
-    this.unbind();
-  }
-
-  public addAttribute(
+  public createArray(
     name: string,
     location: number,
     data: Float32Array,
     size: number
-  ): this {
+  ) {
     if (!this.vao) {
       throw new Error("No active VAO. Call begin() first");
     }
 
     const buffer = this.gl.createBuffer();
-    if (!buffer) {
-      throw new Error("Failed to create buffer");
-    }
-
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
     this.gl.enableVertexAttribArray(location);
     this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, 0, 0);
-
     this.buffers.set(name, buffer);
-    return this;
+  }
+
+  public createElement(data: Uint16Array) {
+    const buffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
   }
 
   public draw(count: number) {
