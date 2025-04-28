@@ -39,7 +39,7 @@ export class Geometry {
 
     if (this.uvs) {
       const uvLocation = program.getAttributeLocation("uv");
-      this.buffer.createArray("uv", uvLocation, this.uvs, 3);
+      this.buffer.createArray("uv", uvLocation, this.uvs, 2);
     }
 
     if (this.indices) {
@@ -50,9 +50,7 @@ export class Geometry {
   }
 
   public draw() {
-    this.buffer.bind();
-    this.buffer.draw(this.vertexCount);
-    this.buffer.unbind();
+    this.buffer.draw(this.indices ? this.indices.length : this.vertexCount);
   }
 
   dispose(): void {
@@ -167,13 +165,13 @@ export class BoxGeometry extends Geometry {
       // Front face
       0, 0, 1, 0, 1, 1, 0, 1,
       // Back face
-      1, 0, 1, 1, 0, 1, 0, 0,
+      0, 0, 1, 0, 1, 1, 0, 1,
       // Top face
-      0, 1, 0, 0, 1, 0, 1, 1,
+      0, 0, 1, 0, 1, 1, 0, 1,
       // Bottom face
-      1, 1, 0, 1, 0, 0, 1, 0,
+      0, 0, 1, 0, 1, 1, 0, 1,
       // Right face
-      1, 0, 1, 1, 0, 1, 0, 0,
+      0, 0, 1, 0, 1, 1, 0, 1,
       // Left face
       0, 0, 1, 0, 1, 1, 0, 1,
     ]);

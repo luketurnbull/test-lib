@@ -39,7 +39,15 @@ export class Buffer {
   }
 
   public draw(count: number) {
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, count);
+    this.bind();
+
+    if (this.gl.getParameter(this.gl.ELEMENT_ARRAY_BUFFER_BINDING)) {
+      this.gl.drawElements(this.gl.TRIANGLES, count, this.gl.UNSIGNED_SHORT, 0);
+    } else {
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, count);
+    }
+
+    this.unbind();
   }
 
   public bind() {

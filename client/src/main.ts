@@ -1,8 +1,13 @@
-import { Geometry, Material, Mesh, Renderer, BoxGeometry } from "lib";
+import { Material, Mesh, Renderer, BoxGeometry } from "lib";
 import "./style.css";
 
 const vertexShader = `
+  out vec2 vUv;
+  out vec3 vNormal;
+
   void main() {
+    vNormal = normal;
+    vUv = uv;
     gl_Position = vec4(position, 1.0);
   }
 `;
