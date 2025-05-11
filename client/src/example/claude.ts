@@ -1,5 +1,12 @@
-import "./style.css";
-import { Renderer, Camera, Geometry, BasicMaterial, Mesh, Vector3 } from "lib";
+import "../style.css";
+import {
+  ExampleRenderer as Renderer,
+  ExampleCamera as Camera,
+  ExampleGeometry as Geometry,
+  ExampleBasicMaterial as BasicMaterial,
+  ExampleMesh as Mesh,
+  ExampleVector3 as Vector3,
+} from "lib";
 
 class WebGLApp {
   renderer: Renderer;
@@ -10,14 +17,12 @@ class WebGLApp {
   canvas: HTMLCanvasElement;
 
   constructor() {
-    const app = document.getElementById("app");
-    if (!app) {
-      throw new Error("App id not found");
+    const canvas = document.getElementById("my-canvas") as HTMLCanvasElement;
+    if (!canvas) {
+      throw new Error("Canvas id not found");
     }
 
-    this.canvas = document.createElement("canvas");
-    this.canvas.id = "webgl-canvas";
-    app.appendChild(this.canvas);
+    this.canvas = canvas;
 
     // Initialize renderer
     this.renderer = new Renderer(this.canvas);
