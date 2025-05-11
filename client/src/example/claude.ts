@@ -17,32 +17,27 @@ class WebGLApp {
 
     this.canvas = canvas;
 
-    // Initialize renderer
     this.renderer = new Renderer(this.canvas);
     this.updateSize(); // Initial size setup
     this.renderer.setClearColor(new Vector3(0.05, 0.05, 0.1));
 
-    // Set up camera
     this.camera = new Camera(
       this.canvas.clientWidth / this.canvas.clientHeight,
       Math.PI / 4,
       0.1,
       100
     );
+
     this.camera.position.z = 5;
 
-    // Create a cube
     this.cube = this.createCube(1, new Vector3(0.8, 0.2, 0.3));
     this.renderer.add(this.cube);
 
-    // Create a cube
     this.cube2 = this.createCube(-1, new Vector3(0.3, 0.8, 0.3));
     this.renderer.add(this.cube2);
 
-    // Add resize listener
     window.addEventListener("resize", this.handleResize);
 
-    // Start animation loop
     this.animate();
   }
 
@@ -70,7 +65,7 @@ class WebGLApp {
     const geometry = Geometry.createBox(1, 1, 1);
 
     // Create material with custom color
-    const material = new BasicMaterial(this.renderer.gl, color);
+    const material = new BasicMaterial(color);
 
     // Create mesh
     const mesh = new Mesh(geometry, material);
