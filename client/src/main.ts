@@ -2,7 +2,6 @@ import "./style.css";
 import {
   Renderer,
   Camera,
-  Geometry,
   BasicMaterial,
   Mesh,
   Vector3,
@@ -25,9 +24,10 @@ class WebGLApp {
 
     this.canvas = canvas;
 
-    this.renderer = new Renderer(this.canvas);
-    this.updateSize(); // Initial size setup
-    this.renderer.setClearColor(new Vector3(0.05, 0.05, 0.1));
+    this.renderer = new Renderer(this.canvas, {
+      backgroundColor: new Vector3(1.0, 0.5, 0.5),
+    });
+    this.updateSize();
 
     this.camera = new Camera(
       this.canvas.clientWidth / this.canvas.clientHeight,

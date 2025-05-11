@@ -3,12 +3,19 @@ import { Camera } from "./camera";
 import { Context } from "./gl";
 import { Mesh } from "./mesh";
 
+type RendererOptions = {
+  backgroundColor?: Vector3;
+};
+
 export class Renderer {
   private canvas: HTMLCanvasElement;
   private clearColor: Vector3;
   private meshes: Mesh[] = [];
 
-  constructor(canvas: HTMLCanvasElement | string) {
+  constructor(
+    canvas: HTMLCanvasElement | string,
+    { backgroundColor }: RendererOptions
+  ) {
     if (typeof canvas === "string") {
       const element = document.getElementById(canvas);
 
@@ -19,12 +26,13 @@ export class Renderer {
       if (!(element instanceof HTMLCanvasElement)) {
         throw new Error(`Element with ID ${canvas} is not a canvas!`);
       }
+
       this.canvas = element;
     } else {
       this.canvas = canvas;
     }
 
-    this.clearColor = new Vector3(0.1, 0.1, 0.1);
+    this.clearColor = backgroundColor ?? new Vector3(0.1, 0.1, 0.1);
 
     Context.initialize(this.canvas);
     const gl = Context.useGl();
@@ -52,6 +60,8 @@ export class Renderer {
 
   render(camera: Camera): void {
     const gl = Context.useGl();
+
+    console.log(this.clearColor);
 
     gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
