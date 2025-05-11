@@ -1,65 +1,35 @@
-import { Buffer } from "./buffer";
-import { ShaderProgram } from "./shader-program";
+import { Context } from "./gl";
 
 export class Geometry {
-  private buffer: Buffer;
-  private positions: Float32Array;
-  private normals?: Float32Array;
-  private uvs?: Float32Array;
-  private indices?: Uint16Array;
-  public vertexCount: number;
+  positions: Float32Array;
+  normals?: Float32Array;
+  uvs?: Float32Array;
+  indices?: Uint16Array | Uint32Array;
+  vertexCount: number;
+  vao: WebGLVertexArrayObject | null = null;
+  buffers: {
+    position?: WebGLBuffer;
+    normal?: WebGLBuffer;
+    uv?: WebGLBuffer;
+    index?: WebGLBuffer;
+  } = {};
 
   constructor(
     positions: Float32Array,
     normals?: Float32Array,
     uvs?: Float32Array,
-    indices?: Uint16Array
+    indices?: Uint16Array | Uint32Array
   ) {
-    this.buffer = new Buffer();
-
     this.positions = positions;
     this.normals = normals;
     this.uvs = uvs;
     this.indices = indices;
 
+    // Calculate vertex count
     this.vertexCount = positions.length / 3;
   }
 
-  public create(program: ShaderProgram) {
-    this.buffer.createVao();
-    this.buffer.bind();
-
-    const positionLocation = program.getAttributeLocation("position");
-    this.buffer.createArray("position", positionLocation, this.positions, 3);
-
-    if (this.normals) {
-      const normalLocation = program.getAttributeLocation("normal");
-      this.buffer.createArray("normal", normalLocation, this.normals, 3);
-    }
-
-    if (this.uvs) {
-      const uvLocation = program.getAttributeLocation("uv");
-      this.buffer.createArray("uv", uvLocation, this.uvs, 2);
-    }
-
-    if (this.indices) {
-      this.buffer.createElement(this.indices);
-    }
-
-    this.buffer.unbind();
-  }
-
-  public draw() {
-    this.buffer.draw(this.indices ? this.indices.length : this.vertexCount);
-  }
-
-  dispose(): void {
-    this.buffer.dispose();
-  }
-}
-
-export class BoxGeometry extends Geometry {
-  constructor(width: number, height: number, depth: number) {
+  static createBox(width = 1, height = 1, depth = 1): Geometry {
     const w = width / 2;
     const h = height / 2;
     const d = depth / 2;
@@ -165,13 +135,13 @@ export class BoxGeometry extends Geometry {
       // Front face
       0, 0, 1, 0, 1, 1, 0, 1,
       // Back face
-      0, 0, 1, 0, 1, 1, 0, 1,
+      1, 0, 1, 1, 0, 1, 0, 0,
       // Top face
-      0, 0, 1, 0, 1, 1, 0, 1,
+      0, 1, 0, 0, 1, 0, 1, 1,
       // Bottom face
-      0, 0, 1, 0, 1, 1, 0, 1,
+      1, 1, 0, 1, 0, 0, 1, 0,
       // Right face
-      0, 0, 1, 0, 1, 1, 0, 1,
+      1, 0, 1, 1, 0, 1, 0, 0,
       // Left face
       0, 0, 1, 0, 1, 1, 0, 1,
     ]);
@@ -215,6 +185,63 @@ export class BoxGeometry extends Geometry {
       23, // Left face
     ]);
 
-    super(positions, normals, uvs, indices);
+    return new Geometry(positions, normals, uvs, indices);
+  }
+
+  // Upload the geometry data to the GPU
+  upload(): void {
+    const gl = Context.useGl();
+
+    // Create VAO
+    this.vao = gl.createVertexArray();
+    gl.bindVertexArray(this.vao);
+
+    // Position buffer
+    this.buffers.position = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
+    gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+    // Normal buffer (if available)
+    if (this.normals) {
+      this.buffers.normal = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.normal);
+      gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+    }
+
+    // UV buffer (if available)
+    if (this.uvs) {
+      this.buffers.uv = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.uv);
+      gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+    }
+
+    // Index buffer (if available)
+    if (this.indices) {
+      this.buffers.index = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers.index);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+    }
+
+    gl.bindVertexArray(null);
+  }
+
+  dispose(): void {
+    const gl = Context.useGl();
+
+    // Clean up WebGL resources
+    if (this.vao) gl.deleteVertexArray(this.vao);
+    if (this.buffers.position) gl.deleteBuffer(this.buffers.position);
+    if (this.buffers.normal) gl.deleteBuffer(this.buffers.normal);
+    if (this.buffers.uv) gl.deleteBuffer(this.buffers.uv);
+    if (this.buffers.index) gl.deleteBuffer(this.buffers.index);
+
+    this.vao = null;
+    this.buffers = {};
   }
 }

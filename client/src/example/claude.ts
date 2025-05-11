@@ -1,12 +1,5 @@
 import "../style.css";
-import {
-  ExampleRenderer as Renderer,
-  ExampleCamera as Camera,
-  ExampleGeometry as Geometry,
-  ExampleBasicMaterial as BasicMaterial,
-  ExampleMesh as Mesh,
-  ExampleVector3 as Vector3,
-} from "lib";
+import { Renderer, Camera, Geometry, BasicMaterial, Mesh, Vector3 } from "lib";
 
 class WebGLApp {
   renderer: Renderer;

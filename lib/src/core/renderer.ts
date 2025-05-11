@@ -1,26 +1,14 @@
-import { Mesh } from "./mesh";
 import { Vector3 } from "../math/vectors";
+import { Camera } from "./camera";
 import { Context } from "./gl";
+import { Mesh } from "./mesh";
 
 export class Renderer {
-  private gl: WebGL2RenderingContext;
-  private backgroundColor: Vector3 = {
-    x: 0.1,
-    y: 0.1,
-    z: 0.1,
-  };
-  private isTransparent: boolean = false;
+  private canvas: HTMLCanvasElement;
+  private clearColor: Vector3;
   private meshes: Mesh[] = [];
 
-  public canvas: HTMLCanvasElement;
-
-  constructor(
-    canvas: HTMLCanvasElement | string,
-    options?: {
-      backgroundColor?: Vector3;
-      isTransparent?: boolean;
-    }
-  ) {
+  constructor(canvas: HTMLCanvasElement | string) {
     if (typeof canvas === "string") {
       const element = document.getElementById(canvas);
 
@@ -31,53 +19,54 @@ export class Renderer {
       if (!(element instanceof HTMLCanvasElement)) {
         throw new Error(`Element with ID ${canvas} is not a canvas!`);
       }
-
       this.canvas = element;
     } else {
       this.canvas = canvas;
     }
 
-    // initialize canvas
-    this.gl = Context.initialize(this.canvas);
+    this.clearColor = new Vector3(0.1, 0.1, 0.1);
 
-    // Set options
-    if (options?.backgroundColor) {
-      this.backgroundColor = options.backgroundColor;
-    }
+    // Initialize WebGL context
+    Context.initialize(this.canvas);
+    const gl = Context.useGl();
 
-    if (options?.isTransparent) {
-      this.isTransparent = options.isTransparent;
-    }
-
-    // Setup
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
   }
 
-  public add(mesh: Mesh): void {
-    mesh.create();
+  setClearColor(color: Vector3): void {
+    this.clearColor = color;
+  }
+
+  setSize(width: number, height: number): void {
+    this.canvas.width = width;
+    this.canvas.height = height;
+    Context.useGl().viewport(0, 0, width, height);
+  }
+
+  add(mesh: Mesh): void {
+    if (!mesh.geometry.vao) {
+      mesh.geometry.upload();
+    }
     this.meshes.push(mesh);
   }
 
-  public render() {
-    this.clearCanvas();
+  render(camera: Camera): void {
+    const gl = Context.useGl();
 
+    // Clear the canvas
+    gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Update camera matrices
+    camera.updateViewMatrix();
+    camera.updateProjectionMatrix();
+
+    // Render all meshes
     for (const mesh of this.meshes) {
-      mesh.render();
+      mesh.render(camera.viewMatrix, camera.projectionMatrix);
     }
-  }
-
-  private clearCanvas() {
-    this.gl.clearColor(
-      this.backgroundColor.x,
-      this.backgroundColor.y,
-      this.backgroundColor.z,
-      this.isTransparent ? 0.0 : 1.0
-    );
-
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
   }
 }
