@@ -1,4 +1,4 @@
-import { Context } from "./gl";
+import { Buffer } from "./buffer";
 
 export class Geometry {
   positions: Float32Array;
@@ -6,13 +6,7 @@ export class Geometry {
   uvs?: Float32Array;
   indices?: Uint16Array | Uint32Array;
   vertexCount: number;
-  vao: WebGLVertexArrayObject | null = null;
-  buffers: {
-    position?: WebGLBuffer;
-    normal?: WebGLBuffer;
-    uv?: WebGLBuffer;
-    index?: WebGLBuffer;
-  } = {};
+  private buffer: Buffer;
 
   constructor(
     positions: Float32Array,
@@ -27,6 +21,7 @@ export class Geometry {
 
     // Calculate vertex count
     this.vertexCount = positions.length / 3;
+    this.buffer = new Buffer();
   }
 
   static createBox(width = 1, height = 1, depth = 1): Geometry {
@@ -190,58 +185,33 @@ export class Geometry {
 
   // Upload the geometry data to the GPU
   upload(): void {
-    const gl = Context.useGl();
+    this.buffer.createVao();
 
-    // Create VAO
-    this.vao = gl.createVertexArray();
-    gl.bindVertexArray(this.vao);
+    // Upload position attributes (required)
+    this.buffer.createArray("position", 0, this.positions, 3);
 
-    // Position buffer
-    this.buffers.position = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
-    gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-    // Normal buffer (if available)
+    // Upload normal attributes (optional)
     if (this.normals) {
-      this.buffers.normal = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.normal);
-      gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(1);
-      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+      this.buffer.createArray("normal", 1, this.normals, 3);
     }
 
-    // UV buffer (if available)
+    // Upload UV attributes (optional)
     if (this.uvs) {
-      this.buffers.uv = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.uv);
-      gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(2);
-      gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+      this.buffer.createArray("uv", 2, this.uvs, 2);
     }
 
-    // Index buffer (if available)
+    // Upload indices if available
     if (this.indices) {
-      this.buffers.index = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers.index);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+      this.buffer.createElement(this.indices);
     }
+  }
 
-    gl.bindVertexArray(null);
+  draw(): void {
+    const count = this.indices ? this.indices.length : this.vertexCount;
+    this.buffer.draw(count);
   }
 
   dispose(): void {
-    const gl = Context.useGl();
-
-    // Clean up WebGL resources
-    if (this.vao) gl.deleteVertexArray(this.vao);
-    if (this.buffers.position) gl.deleteBuffer(this.buffers.position);
-    if (this.buffers.normal) gl.deleteBuffer(this.buffers.normal);
-    if (this.buffers.uv) gl.deleteBuffer(this.buffers.uv);
-    if (this.buffers.index) gl.deleteBuffer(this.buffers.index);
-
-    this.vao = null;
-    this.buffers = {};
+    this.buffer.dispose();
   }
 }

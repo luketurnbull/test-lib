@@ -26,7 +26,6 @@ export class Renderer {
 
     this.clearColor = new Vector3(0.1, 0.1, 0.1);
 
-    // Initialize WebGL context
     Context.initialize(this.canvas);
     const gl = Context.useGl();
 
@@ -47,9 +46,7 @@ export class Renderer {
   }
 
   add(mesh: Mesh): void {
-    if (!mesh.geometry.vao) {
-      mesh.geometry.upload();
-    }
+    mesh.geometry.upload();
     this.meshes.push(mesh);
   }
 

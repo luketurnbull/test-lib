@@ -4,6 +4,7 @@ export class Buffer {
   private gl: WebGL2RenderingContext;
   private vao: WebGLVertexArrayObject | null = null;
   private buffers: Map<string, WebGLBuffer> = new Map();
+  private indexType: number | null = null;
 
   constructor() {
     this.gl = Context.useGl();
@@ -21,10 +22,14 @@ export class Buffer {
     size: number
   ) {
     if (!this.vao) {
-      throw new Error("No active VAO. Call begin() first");
+      throw new Error("No active VAO. Call createVao() first");
     }
 
     const buffer = this.gl.createBuffer();
+    if (!buffer) {
+      throw new Error(`Failed to create buffer for ${name}`);
+    }
+
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
     this.gl.enableVertexAttribArray(location);
@@ -32,17 +37,26 @@ export class Buffer {
     this.buffers.set(name, buffer);
   }
 
-  public createElement(data: Uint16Array) {
+  public createElement(data: Uint16Array | Uint32Array) {
     const buffer = this.gl.createBuffer();
+    if (!buffer) {
+      throw new Error("Failed to create element buffer");
+    }
+
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+    this.indexType =
+      data instanceof Uint32Array
+        ? this.gl.UNSIGNED_INT
+        : this.gl.UNSIGNED_SHORT;
+    this.buffers.set("index", buffer);
   }
 
   public draw(count: number) {
     this.bind();
 
-    if (this.gl.getParameter(this.gl.ELEMENT_ARRAY_BUFFER_BINDING)) {
-      this.gl.drawElements(this.gl.TRIANGLES, count, this.gl.UNSIGNED_SHORT, 0);
+    if (this.buffers.has("index")) {
+      this.gl.drawElements(this.gl.TRIANGLES, count, this.indexType!, 0);
     } else {
       this.gl.drawArrays(this.gl.TRIANGLES, 0, count);
     }
@@ -52,7 +66,7 @@ export class Buffer {
 
   public bind() {
     if (!this.vao) {
-      throw new Error("No VAO created. Call beginVAO() first");
+      throw new Error("No VAO created. Call createVao() first");
     }
 
     this.gl.bindVertexArray(this.vao);
@@ -73,5 +87,6 @@ export class Buffer {
     });
 
     this.buffers.clear();
+    this.indexType = null;
   }
 }

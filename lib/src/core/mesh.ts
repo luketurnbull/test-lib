@@ -1,6 +1,5 @@
 import { Matrix4 } from "../math/matrices";
 import { Vector3 } from "../math/vectors";
-import { Context } from "./gl";
 import { Geometry } from "./geometry";
 import { Material } from "./material";
 
@@ -42,9 +41,6 @@ export class Mesh {
   }
 
   render(viewMatrix: Matrix4, projectionMatrix: Matrix4): void {
-    const gl = Context.useGl();
-
-    // Update model matrix
     this.updateModelMatrix();
 
     // Activate the material's shader program and set uniforms
@@ -53,26 +49,7 @@ export class Mesh {
     this.material.setMatrix4("viewMatrix", viewMatrix);
     this.material.setMatrix4("projectionMatrix", projectionMatrix);
 
-    // Bind the geometry's VAO
-    if (this.geometry.vao) {
-      gl.bindVertexArray(this.geometry.vao);
-
-      // Draw the geometry
-      if (this.geometry.indices) {
-        gl.drawElements(
-          gl.TRIANGLES,
-          this.geometry.indices.length,
-          this.geometry.indices instanceof Uint16Array
-            ? gl.UNSIGNED_SHORT
-            : gl.UNSIGNED_INT,
-          0
-        );
-      } else {
-        gl.drawArrays(gl.TRIANGLES, 0, this.geometry.vertexCount);
-      }
-
-      // Unbind VAO
-      gl.bindVertexArray(null);
-    }
+    // Draw the geometry
+    this.geometry.draw();
   }
 }
