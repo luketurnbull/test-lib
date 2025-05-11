@@ -22,9 +22,6 @@ export class Geometry {
     this.buffer = new Buffer();
   }
 
-  /**
-   * Upload geometry data to the GPU
-   */
   upload(): void {
     this.buffer.createVao();
 
@@ -47,17 +44,11 @@ export class Geometry {
     }
   }
 
-  /**
-   * Draw the geometry
-   */
   draw(): void {
     const count = this.indices ? this.indices.length : this.vertexCount;
     this.buffer.draw(count);
   }
 
-  /**
-   * Clean up resources
-   */
   dispose(): void {
     this.buffer.dispose();
   }

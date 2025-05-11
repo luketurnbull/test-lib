@@ -5,8 +5,10 @@ import { Context } from "./gl";
 
 export class Material {
   private shaderProgram: ShaderProgram;
+  private gl: WebGL2RenderingContext;
 
   constructor(vertexShader: string, fragmentShader: string) {
+    this.gl = Context.useGl();
     this.shaderProgram = new ShaderProgram(vertexShader, fragmentShader);
   }
 
@@ -15,27 +17,23 @@ export class Material {
   }
 
   setMatrix4(name: string, value: Matrix4): void {
-    const gl = Context.useGl();
     const location = this.shaderProgram.getUniformLocation(name);
-    gl.uniformMatrix4fv(location, false, value.elements);
+    this.gl.uniformMatrix4fv(location, false, value.elements);
   }
 
   setVector3(name: string, value: Vector3): void {
-    const gl = Context.useGl();
     const location = this.shaderProgram.getUniformLocation(name);
-    gl.uniform3f(location, value.x, value.y, value.z);
+    this.gl.uniform3f(location, value.x, value.y, value.z);
   }
 
   setFloat(name: string, value: number): void {
-    const gl = Context.useGl();
     const location = this.shaderProgram.getUniformLocation(name);
-    gl.uniform1f(location, value);
+    this.gl.uniform1f(location, value);
   }
 
   setInt(name: string, value: number): void {
-    const gl = Context.useGl();
     const location = this.shaderProgram.getUniformLocation(name);
-    gl.uniform1i(location, value);
+    this.gl.uniform1i(location, value);
   }
 
   dispose(): void {

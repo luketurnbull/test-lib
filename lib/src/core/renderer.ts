@@ -11,6 +11,7 @@ export class Renderer {
   private canvas: HTMLCanvasElement;
   private clearColor: Vector3;
   private meshes: Mesh[] = [];
+  private gl: WebGL2RenderingContext;
 
   constructor(
     canvas: HTMLCanvasElement | string,
@@ -34,13 +35,11 @@ export class Renderer {
 
     this.clearColor = backgroundColor ?? new Vector3(0.1, 0.1, 0.1);
 
-    Context.initialize(this.canvas);
-    const gl = Context.useGl();
-
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LEQUAL);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
+    this.gl = Context.initialize(this.canvas);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LEQUAL);
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.cullFace(this.gl.BACK);
   }
 
   setClearColor(color: Vector3): void {
@@ -59,12 +58,14 @@ export class Renderer {
   }
 
   render(camera: Camera): void {
-    const gl = Context.useGl();
+    this.gl.clearColor(
+      this.clearColor.x,
+      this.clearColor.y,
+      this.clearColor.z,
+      1.0
+    );
 
-    console.log(this.clearColor);
-
-    gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     camera.updateViewMatrix();
     camera.updateProjectionMatrix();

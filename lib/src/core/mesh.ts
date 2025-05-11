@@ -44,6 +44,7 @@ export class Mesh {
     this.updateModelMatrix();
 
     // Activate the material's shader program and set uniforms
+    // Could create generic "setUniforms" which looks for the type of each uniform and sets them appropriately
     this.material.use();
     this.material.setMatrix4("modelMatrix", this.modelMatrix);
     this.material.setMatrix4("viewMatrix", viewMatrix);
