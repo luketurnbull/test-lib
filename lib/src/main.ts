@@ -1,4 +1,5 @@
 export { Geometry } from "./core/geometry";
+export { BoxGeometry } from "./core/geometries/box-geometry";
 export { Material, BasicMaterial } from "./core/material";
 export { Mesh } from "./core/mesh";
 export { Renderer } from "./core/renderer";

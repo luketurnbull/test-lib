@@ -1,5 +1,13 @@
 import "./style.css";
-import { Renderer, Camera, Geometry, BasicMaterial, Mesh, Vector3 } from "lib";
+import {
+  Renderer,
+  Camera,
+  Geometry,
+  BasicMaterial,
+  Mesh,
+  Vector3,
+  BoxGeometry,
+} from "lib";
 
 class WebGLApp {
   renderer: Renderer;
@@ -62,7 +70,7 @@ class WebGLApp {
 
   createCube(y: number, color: Vector3): Mesh {
     // Create cube geometry
-    const geometry = Geometry.createBox(1, 1, 1);
+    const geometry = new BoxGeometry(1, 1, 1);
 
     // Create material with custom color
     const material = new BasicMaterial(color);

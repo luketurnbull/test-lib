@@ -53,15 +53,12 @@ export class Renderer {
   render(camera: Camera): void {
     const gl = Context.useGl();
 
-    // Clear the canvas
     gl.clearColor(this.clearColor.x, this.clearColor.y, this.clearColor.z, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Update camera matrices
     camera.updateViewMatrix();
     camera.updateProjectionMatrix();
 
-    // Render all meshes
     for (const mesh of this.meshes) {
       mesh.render(camera.viewMatrix, camera.projectionMatrix);
     }
